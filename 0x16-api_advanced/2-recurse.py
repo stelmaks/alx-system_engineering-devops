@@ -9,29 +9,33 @@ the function should return None.
 import requests
 
 
-def recurse(subreddit, hot_list=[], after=""):
+def recurse(subreddit, hot_list=[], next_page=None, count=0):
+    """Request subreddit recursively using pagination
     """
-    Queries the Reddit API and returns
-    a list containing the titles of all hot articles for a given subreddit.
+    # set custom user-agent
+    user_agent = '0x16-api_advanced-jmajetich'
+    url = 'https://www.reddit.com/r/{}/hot.json'.format(subreddit)
+    # if page specified, pass as parameter
+    if next_page:
+        url += '?after={}'.format(next_page)
+    headers = {'User-Agent': user_agent}
 
-    - If not a valid subreddit, return None.
-    """
-    req = requests.get(
-        "https://www.reddit.com/r/{}/hot.json".format(subreddit),
-        headers={"User-Agent": "Custom"},
-        params={"after": after},
-    )
+    r = requests.get(url, headers=headers, allow_redirects=False)
 
-    if req.status_code == 200:
-        for get_data in req.json().get("data").get("children"):
-            dat = get_data.get("data")
-            title = dat.get("title")
-            hot_list.append(title)
-        after = req.json().get("data").get("after")
-
-        if after is None:
-            return hot_list
-        else:
-            return recurse(subreddit, hot_list, after)
-    else:
+    if r.status_code != 200:
         return None
+
+    # load response unit from json
+    data = r.json()['data']
+
+    # extract list of pages
+    posts = data['children']
+    for post in posts:
+        count += 1
+        hot_list.append(post['data']['title'])
+
+    next_page = data['after']
+    if next_page is not None:
+        return recurse(subreddit, hot_list, next_page, count)
+    else:
+        return hot_list
