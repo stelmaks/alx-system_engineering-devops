@@ -5,7 +5,7 @@ title of all hot articles, and prints a sorted count of
 given keywords (case-insensitive, delimited by spaces
 Javascript should count as javascript, but java should not. 
 """
-import requests
+from requests import get
 
 
 def count_words(subreddit, word_list, count_list=[], next_page=None):
@@ -20,7 +20,7 @@ def count_words(subreddit, word_list, count_list=[], next_page=None):
     # NETWORKING
     # set custom user-agent
     user_agent = '0x16-api_advanced-stelmaks'
-    url = 'f"https://www.reddit.com/r/{subreddit}/about.json"'.format(subreddit)
+    url = 'https://www.reddit.com/r/{}/hot.json'.format(subreddit)
     # if page specified, pass as parameter
     if next_page:
         url += '?after={}'.format(next_page)
